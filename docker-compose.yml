@@ -1,0 +1,108 @@
+version: '4.33.1'
+
+
+services:
+  discovery-service:
+    build:
+      context: ./discovery-server
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL=http://discovery-service:8761/eureka
+    ports:
+      - "8080:8080"
+
+
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb://product-db:27017/product-service
+      - EUREKA_CLIENT_SERVICE_URL=http://discovery-service:8761/eureka
+    depends_on:
+      - product-db
+      - discovery-service
+
+  product-db:
+    image: mongo:5
+    environment:
+      MONGO_INITDB_DATABASE: product-service
+    ports:
+      - "27017:27017"
+
+  inventory-service:
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://inventory-db:5432/inventory_service
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=alex
+      - EUREKA_CLIENT_SERVICE_URL=http://discovery-service:8761/eureka
+    depends_on:
+      - inventory-db
+      - discovery-service
+
+
+  inventory-service-1:
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://inventory-db:5432/inventory_service
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=alex
+      - EUREKA_CLIENT_SERVICE_URL=http://discovery-service:8761/eureka
+    depends_on:
+      - inventory-db
+      - discovery-service
+
+  inventory-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: inventory_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: alex
+    ports:
+      - "5434:5432"
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://order-db:5432/order_service
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=alex
+      - EUREKA_CLIENT_SERVICE_URL=http://discovery-service:8761/eureka
+    depends_on:
+      - order-db
+      - discovery-service
+
+  order-db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: order_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: alex
+    ports:
+      - "5432:5432"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    ports:
+      - "8181:8080"
+    command:
+      - start-dev
+    depends_on:
+      - discovery-service
