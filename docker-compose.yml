@@ -95,14 +95,14 @@ services:
     ports:
       - "5432:5432"
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:25.0
-    environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-    ports:
-      - "8181:8080"
-    command:
-      - start-dev
-    depends_on:
-      - discovery-service
+#  keycloak:
+#    image: quay.io/keycloak/keycloak:25.0
+#    environment:
+#      - KEYCLOAK_ADMIN=admin
+#      - KEYCLOAK_ADMIN_PASSWORD=admin
+#    ports:
+#      - "8181:8080"
+#    command:
+#      - start-dev
+#    depends_on:
+#      - discovery-service
